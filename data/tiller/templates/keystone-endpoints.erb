@@ -1,0 +1,100 @@
+#!/bin/sh
+#
+export OS_SERVICE_TOKEN="<%= env_keystone_admin_token %>"
+export OS_SERVICE_ENDPOINT="http://<%= env_keystone_host%>:<%= env_keystone_admin_port %>/v2.0"
+<% if env_config_keystone == "true" %>
+keystone service-create --name keystone --type identity --description 'OpenStack Identity'
+<% end %>
+<% if env_config_glance == "true" %>
+keystone service-create --name glance --type image --description 'OpenStack Image Service'
+<% end %>
+<% if env_config_nova == "true" %>
+keystone service-create --name nova --type compute --description 'OpenStack Compute Service'
+keystone service-create --name ec2 --type ec2 --description 'OpenStack EC2 service'
+<% end %>
+<% if env_config_cinder == "true" %>
+keystone service-create --name cinder --type volume --description 'OpenStack Volume Service'
+<% end %>
+<% if env_config_swift == "true" %>
+keystone service-create --name swift --type object-store --description 'OpenStack Storage Service'
+<% end %>
+<% if env_config_neutron == "true" %>
+keystone service-create --name neutron --type network --description 'OpenStack Networking Service'
+<% end %>
+<% if env_config_heat == "true" %>
+keystone service-create --name heat-cfn --type cloudformation --description 'Heat CloudFormation API'
+keystone service-create --name heat --type orchestration --description 'Heat Orchestration API'
+<% end %>
+<% if env_config_ceilometer == "true" %>
+keystone service-create --name ceilometer --type metering --description 'OpenStack Telemetry Service'
+<% end %>
+<% if env_config_trove == "true" %>
+keystone service-create --name trove --type database --description 'OpenStack Database Service'
+<% end %>
+
+create_endpoint () {
+  case $1 in
+    compute)
+    <% if env_config_nova == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_nova_api_host %>:8774/v2/$(tenant_id)s' --adminurl 'http://<%= env_nova_api_host %>:8774/v2/$(tenant_id)s' --internalurl 'http://<%= env_nova_api_host %>:8774/v2/$(tenant_id)s'
+    <% end %>
+    ;;
+    volume)
+    <% if env_config_cinder == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_cinder_api_host %>:8776/v1/$(tenant_id)s' --adminurl 'http://<%= env_cinder_api_host %>:8776/v1/$(tenant_id)s' --internalurl 'http://<%= env_cinder_api_host %>:8776/v1/$(tenant_id)s'
+    <% end %>
+    ;;
+    image)
+    <% if env_config_glance == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_glance_api_host %>:9292/v2' --adminurl 'http://<%= env_glance_api_host %>:9292/v2' --internalurl 'http://<%= env_glance_api_host %>:9292/v2'
+    <% end %>
+    ;;
+    object-store)
+    <% if env_config_swift == "true" %>
+      keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_swift_proxy_host %>:8080/v1/AUTH_$(tenant_id)s' --adminurl 'http://<%= env_swift_proxy_host %>:8080/v1' --internalurl 'http://<%= env_swift_proxy_host %>:8080/v1/AUTH_$(tenant_id)s'
+    <% end %>
+    ;;
+    identity)
+    <% if env_config_keystone == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_keystone_host %>:5000/v2.0' --adminurl 'http://<%= env_keystone_host %>:35357/v2.0' --internalurl 'http://<%= env_keystone_host %>:5000/v2.0'
+    <% end %>
+    ;;
+    ec2)
+    <% if env_config_nova == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_nova_api_host %>:8773/services/Cloud' --adminurl 'http://<%= env_nova_api_host %>:8773/services/Admin' --internalurl 'http://<%= env_nova_api_host %>:8773/services/Cloud'
+    <% end %>
+    ;;
+    cloudformation)
+    <% if env_config_heat == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_heat_api_host %>:8000/v1' --adminurl 'http://<%= env_heat_api_host %>:8000/v1' --internalurl 'http://<%= env_heat_api_host %>:8000/v1'
+    <% end %>
+    ;;
+    orchestration)
+    <% if env_config_heat == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_heat_api_host %>:8004/v1/%(tenant_id)s' --adminurl 'http://<%= env_heat_api_host %>:8004/v1/%(tenant_id)s' --internalurl 'http://<%= env_heat_api_host %>:8004/v1/%(tenant_id)s'
+    <% end %>
+    ;;
+    network)
+    <% if env_config_neutron == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_neutron_api_host %>:9696/' --adminurl 'http://<%= env_neutron_api_host %>:9696/' --internalurl 'http://<%= env_neutron_api_host %>:9696/'
+    <% end %>
+    ;;
+    metering)
+    <% if env_config_ceilometer == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_ceilometer_api_host %>:8777/'  --adminurl 'http://<%= env_ceilometer_api_host %>:8777/' --internalurl 'http://<%= env_ceilometer_api_host %>:8777/'
+    <% end %>
+    ;;
+    database)
+    <% if env_config_trove == "true" %>
+    keystone endpoint-create --region <%= env_region %> --service-id $2 --publicurl 'http://<%= env_trove_api_host %>:8779/v1.0/\$(tenant_id)s' --adminurl 'http://<%= env_trove_api_host %>:8779/v1.0/\$(tenant_id)s' --internalurl 'http://<%= env_trove_api_host %>:8779/v1.0/\$(tenant_id)s'
+    <% end %>
+    ;;
+  esac
+}
+
+for i in compute volume image object-store identity ec2 cloudformation orchestration network metering database; do
+  id=`mysql -h "<%= env_db_host %>" -u "keystone" -p"<%= env_db_password %>" "keystone" -ss -e "SELECT id FROM service WHERE type=$i;"` || exit 1
+  create_endpoint $i $id
+done
+
+unset OS_SERVICE_TOKEN OS_SERVICE_ENDPOINT

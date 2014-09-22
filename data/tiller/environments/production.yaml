@@ -1,0 +1,41 @@
+keystone.conf.erb:
+  target: /etc/keystone/keystone.conf
+  user: keystone
+  group: keystone
+  perms: 0644
+  config: {}
+
+keystone.log.erb:
+  target: /var/log/keystone/keystone.log
+  user: keystone
+  group: keystone
+  perms: 0644
+  config: {}
+
+keystone-data.erb:
+  target: /usr/local/bin/keystone-data.sh
+  user: root
+  group: root
+  perms: 0755
+  config: {}
+
+keystone-endpoints.erb:
+  target: /usr/local/bin/keystone-endpoints.sh
+  user: root
+  group: root
+  perms: 0755
+  config: {}
+
+admin-openrc.erb:
+  target: /root/admin-openrc.sh
+  user: root
+  group: root
+  perms: 0755
+  config: {}
+
+demo-openrc.erb:
+  target: /root/demo-openrc.sh
+  user: root
+  group: root
+  perms: 0755
+  config: {}

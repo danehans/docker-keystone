@@ -11,7 +11,7 @@
 # paste application pipelines (for example, in keystone-
 # paste.ini). (string value)
 #admin_token=ADMIN
-admin_token=%ADMIN_TOKEN%
+admin_token=<%= env_keystone_admin_token %>
 
 # The IP Address of the network interface to for the public
 # service to listen on. (string value)
@@ -29,11 +29,11 @@ admin_token=%ADMIN_TOKEN%
 
 # The port number which the admin service listens on. (integer
 # value)
-#admin_port=35357
+admin_port=<%= env_keystone_admin_port %>
 
 # The port number which the public service listens on.
 # (integer value)
-#public_port=5000
+public_port=<%= env_keystone_public_port %>
 
 # The base public endpoint URL for keystone that are
 # advertised to clients (NOTE: this does NOT affect how
@@ -189,7 +189,7 @@ admin_token=%ADMIN_TOKEN%
 
 # The RabbitMQ broker address where a single node is used.
 # (string value)
-#rabbit_host=localhost
+rabbit_host=<%= env_rabbit_host %>
 
 # The RabbitMQ broker port where a single node is used.
 # (integer value)
@@ -202,10 +202,10 @@ admin_token=%ADMIN_TOKEN%
 #rabbit_use_ssl=false
 
 # The RabbitMQ userid. (string value)
-#rabbit_userid=guest
+rabbit_userid=<%= env_rabbit_user %>
 
 # The RabbitMQ password. (string value)
-#rabbit_password=guest
+rabbit_password=<%= env_rabbit_password %>
 
 # the RabbitMQ login method (string value)
 #rabbit_login_method=AMQPLAIN
@@ -438,7 +438,7 @@ verbose=true
 # If not set here, logging will go to /var/log/keystone/keystone.log,
 # default from keystone-dist.conf.
 # Deprecated group/name - [DEFAULT]/logfile
-#log_file=/var/log/keystone/keystone.log
+log_file=/var/log/keystone/keystone.log
 
 # (Optional) The base directory used for relative --log-file
 # paths (string value)
@@ -619,7 +619,7 @@ verbose=true
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
 #connection=mysql://keystone:keystone@localhost/keystone
-connection=mysql://keystone:%DB_PASSWORD%@%DB_HOST%/keystone
+connection=mysql://keystone:<%= env_db_password %>@<%= env_db_host %>/keystone
 
 # The SQL mode to be used for MySQL sessions. This option,
 # including the default, overrides any server-set SQL mode. To
@@ -1329,5 +1329,4 @@ connection=mysql://keystone:%DB_PASSWORD%@%DB_HOST%/keystone
 
 # Keystone Trust backend driver. (string value)
 #driver=keystone.trust.backends.sql.Trust
-
 

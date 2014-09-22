@@ -1,0 +1,3 @@
+# cat data/scripts/build to see the details of the Dockerfile.
+# The build script dynamically creates the Dockerfile for
+# automation purposes.

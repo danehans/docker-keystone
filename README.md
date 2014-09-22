@@ -8,37 +8,86 @@ Overview
 
 Run OpenStack Keystone in a Docker container.
 
-
-Caveats
--------
-
-The systemd_rhel7 base image used by the Keystone container is a private image.
-Use the [Get Started with Docker Containers in RHEL 7](https://access.redhat.com/articles/881893)
-to create your base rhel7 image. Then enable systemd within the rhel7 base image. 
-Use [Running SystemD within a Docker Container](http://rhatdan.wordpress.com/2014/04/30/running-systemd-within-a-docker-container/) to enable SystemD.
-
-Although the container does initialize the database used by Keystone, it does not create the database, permissions, etc.. These are responsibilities of the database service.
-
-The Keystone public API listens on the same TCP port (5000) as the Docker Registry service. If the host that will run the Keystone container is running Docker Registry, map the 5000 container port to a different port on the Docker host and configure all other OpenStack services/clients that use the Keystone public API to use this port.
-
-Installation
+Introduction
 ------------
 
 This guide assumes you have Docker installed on your host system. Use the [Get Started with Docker Containers in RHEL 7](https://access.redhat.com/articles/881893] to install Docker on RHEL 7) to setup your Docker on your RHEL 7 host if needed.
 
-### From Github
+Make sure your Docker host has been configured with the required [OSP 5 channels and repositories](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Installation_and_Configuration_Guide/chap-Prerequisites.html#sect-Software_Repository_Configuration)
 
-Clone the Github repo and change to the project directory:
-```
-yum install -y git
-git clone https://github.com/danehans/docker-keystone.git
-cd docker-keystone
-```
-Edit the keystone.conf and all .sh files according to your deployment needs. Replace all configuration parameters in the %NAME% format. Refer to the OpenStack [Icehouse installation guide](http://docs.openstack.org/icehouse/install-guide/install/yum/content/keystone-install.html) for details. The project includes .example files for reference purposes.
+Reference the [Getting images from outside Docker registries](https://access.redhat.com/articles/881893#images) section of the [Get Started with Docker Containers in RHEL 7](https://access.redhat.com/articles/881893) guide
+to pull your base rhel7 image from Red Hat's private registry. This is required to build the rhel7-systemd base image used by the Keystone container.
 
-Build your Docker Keystone image.
+After following the [Get Started with Docker Containers in RHEL 7](https://access.redhat.com/articles/881893) guide, verify your Docker Registry is running:
 ```
-docker build -t keystone .
+# systemctl status docker-registry
+docker-registry.service - Registry server for Docker
+   Loaded: loaded (/usr/lib/systemd/system/docker-registry.service; enabled)
+   Active: active (running) since Mon 2014-05-05 13:42:56 EDT; 601ms ago
+ Main PID: 21031 (gunicorn)
+   CGroup: /system.slice/docker-registry.service
+           ├─21031 /usr/bin/python /usr/bin/gunicorn --access-logfile - --debug ...
+            ...
+```
+Now that you have the rhel7 base image, follow the instructions in the [docker-rhel7-systemd project](https://github.com/danehans/docker-rhel7-systemd/blob/master/README.md) to build your rhel7-systemd image.
+
+Although the container does initialize the database used by Keystone, it does not create the database, permissions, etc.. These are responsibilities of the database service.
+
+Installation
+------------
+
+From your Docker Registry, set the environment variables used to automate the image building process
+```
+# Name of the Github repo. Change danehans to your Github repo name if you forked my project.
+export REPO_NAME=danehans
+# The branch from the REPO_NAME repo.
+export REPO_BRANCH=master
+```
+Additional environment variables that should be set:
+```
+# IP address/FQDN of the DB Host.
+export DB_HOST=127.0.0.1
+# Password used to access the Keystone database.
+# keystone is used for the DB username.
+export DB_PASSWORD=changeme
+# IP address/FQDN of the RabbitMQ broker.
+export RABBIT_HOST=127.0.0.1
+# IP address/FQDN of the Keystone host.
+export KEYSTONE_HOST=127.0.0.1
+```
+Optional environment variables that can be set:
+```
+# Name used for creating the Keystone Docker image.
+export IMAGE_NAME=ouruser/keystone
+# Hostname used within the Keystone Docker container.
+export HOSTNAME=keystone.example.com
+# RabbitMQ username.
+export RABBIT_USER=guest
+#Password of RabbitMQ user.
+export RABBIT_PASSWORD=guest
+# TCP port number the Keystone Public API listens on.
+# Note: Docker Registry listens on port 5000.
+export KEYSTONE_PUBLIC_PORT=5000
+# TCP port number the Keystone Admin API listens on.
+export KEYSTONE_ADMIN_PORT=35357
+# Name of the Keystone tenant used by OpenStack services.
+export SERVICE_TENANT=services
+# Password of the Keystone service tenant.
+export SERVICE_PASSWORD=changeme
+# Password of the demo user. Used by the demo-openrc credential file.
+export DEMO_USER_PASSWORD=changeme
+# Password of the admin user. Used by the admin-openrc credential file.
+export ADMIN_USER_PASSWORD=changeme
+```
+Refer to the OpenStack [Icehouse installation guide](http://docs.openstack.org/icehouse/install-guide/install/yum/content/keystone-install.html) for more details on the configuration parameters.
+
+The [keystone.conf](https://github.com/danehans/docker-keystone/blob/master/data/tiller/templates/keystone.conf.erb) file is managed by a tool called [Tiller](https://github.com/markround/tiller/blob/master/README.md).
+
+If you require setting additional keystone.conf configuration flags, please fork the docker-keystone project, make your additions, test and submit a pull request to get your changes back upstream.
+
+Run the build script.
+```
+bash <(curl \-fsS https://raw.githubusercontent.com/$REPO_NAME/docker-keystone/$REPO_BRANCH/data/scripts/build)
 ```
 The image should now appear in your image list:
 ```
@@ -94,7 +143,7 @@ $ keystone user-list
 | 93eed2f266854880ac69e581ed8936ef |   cinder   |   True  |   cinder@localhost   |
 | 3084389e225845ad9c19251beb7db8f4 |    demo    |   True  |    demo@localhost    |
 | d8cb2670a3a04898b2d737b28896c132 |   glance   |   True  |   glance@localhost   |
-| ac82a1eb77644e45909ab59361ba7aa9 |    heat    |   True  |    heat@localhost    |
+| ac82a1eb77644e45909ab59361ba7aa9 |    keystone    |   True  |    keystone@localhost    |
 | 52a169ef86cb4d25af5c81776d905a66 |  neutron   |   True  |  neutron@localhost   |
 | d3b17613fe6449e39e4a85df2cdc2ea3 |    nova    |   True  |    nova@localhost    |
 | f3e5da44c69842e99ca542eda8348da2 |   swift    |   True  |   swift@localhost    |
@@ -116,10 +165,10 @@ $ keystone service-list
 | 39b45e204b6641b6b0d02f7180d3d6e0 |   cinder   |     volume     |   OpenStack Volume Service   |
 | cbe045310df4475f97664563b6da81c4 |    ec2     |      ec2       |    OpenStack EC2 service     |
 | e0e541a23ff64d52829559a6f9ce187d |   glance   |     image      |   OpenStack Image Service    |
-| 03ea2d10a6cf403a842dbf36eec94f27 |    heat    | orchestration  |    Heat Orchestration API    |
-| 2db4fad42e4f4c50884d60adbb3b92da |    heat    | orchestration  |    Heat Orchestration API    |
-| 5e50490b38e140cebe3461b0673b888e |  heat-cfn  | cloudformation |   Heat CloudFormation API    |
-| e99f65a04cea44dba7df488749c42fbd |  heat-cfn  | cloudformation |   Heat CloudFormation API    |
+| 03ea2d10a6cf403a842dbf36eec94f27 |    keystone    | orchestration  |    Keystone Orchestration API    |
+| 2db4fad42e4f4c50884d60adbb3b92da |    keystone    | orchestration  |    Keystone Orchestration API    |
+| 5e50490b38e140cebe3461b0673b888e |  keystone-cfn  | cloudformation |   Keystone CloudFormation API    |
+| e99f65a04cea44dba7df488749c42fbd |  keystone-cfn  | cloudformation |   Keystone CloudFormation API    |
 | b7d37c90b74340e9b1ebf82023bf7053 |  keystone  |    identity    |      OpenStack Identity      |
 | ad9b4f5dd793411594a69aae2cfdad52 |  neutron   |    network     | OpenStack Networking Service |
 | 202db1aa66ca463bbc315aacb0a61a71 |    nova    |    compute     |  OpenStack Compute Service   |
@@ -163,4 +212,4 @@ To change iptables rules:
 $ vi /etc/sysconfig/iptables
 $ systemctl restart iptables.service
 ```
-If the Keystone container is being added to an existing OpenStack deployment, you must restart the existing services to obtain updated Keystone certificates. If you had an existing Neutron service, you will need to update the nova_admin_tenant_id in neutron.conf to reflect the new tenant-id of the services tenant. You will also need to update any existing Neutron networks to reflect the correct admin/tenant tenant-id. If you have an existing Heat deployment, you will need to remove/rename the /tmp/keystone-signing-heat/ for Heat to recreate the correct .pem files.
+If the Keystone container is being added to an existing OpenStack deployment, you must restart the existing services to obtain updated Keystone certificates. If you had an existing Neutron service, you will need to update the nova_admin_tenant_id in neutron.conf to reflect the new tenant-id of the services tenant. You will also need to update any existing Neutron networks to reflect the correct admin/tenant tenant-id. If you have an existing Keystone deployment, you will need to remove/rename the /tmp/keystone-signing-keystone/ for Keystone to recreate the correct .pem files.

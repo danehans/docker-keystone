@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Script to create and run docker-keystone image.
+#
+set -x
+set -e
+
+# Check for Root user
+if [ "$(id -u)" != "0" ]; then
+    echo "This script must be run as root or with sudo"
+    exit 1
+fi
+
+# Configure the Keystone Image Name
+export IMAGE_NAME="${IMAGE_NAME:-keystone}"
+
+# Configure the Keystone Container Name
+export CONTAINER_NAME="${CONTAINER_NAME:-keystone}"
+
+# Configure the Keystone Hostname
+export HOSTNAME="${HOSTNAME:-$HOSTNAME}"
+
+# Configure the Keystone Hostname
+export DNS_SEARCH="${DNS_SEARCH:-example.com}"
+
+# Configure the Keystone Public API Port Number
+export KEYSTONE_PUBLIC_PORT="${KEYSTONE_PUBLIC_PORT:-5000}"
+
+# Configure the Keystone Admin API Port NUmber
+export KEYSTONE_ADMIN_PORT="${KEYSTONE_ADMIN_PORT:-35357}"
+
+docker run --privileged -d -h $HOSTNAME --dns-search $DNS_SEARCH -v /sys/fs/cgroup:/sys/fs/cgroup:ro -p $KEYSTONE_PUBLIC_PORT:$KEYSTONE_PUBLIC_PORT -p $KEYSTONE_ADMIN_PORT:$KEYSTONE_ADMIN_PORT --name="$CONTAINER_NAME" $IMAGE_NAME
+
+# Get the PID of the Keystone Container
+CONTAINER_PID="$(docker inspect --format={{.State.Pid}} $CONTAINER_NAME)"
+
+#Use nsenter to enter the namespaces of the running Keystone container.
+nsenter -m -u -n -i -p -t $CONTAINER_PID /bin/bash
+
+exit $?

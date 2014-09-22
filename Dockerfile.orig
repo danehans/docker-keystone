@@ -21,6 +21,7 @@ ADD keystone.conf /etc/keystone/keystone.conf
 RUN chown keystone:keystone /etc/keystone/keystone.conf
 RUN mkdir -p /var/log/keystone && touch /var/log/keystone/keystone.log
 RUN chown keystone:keystone /var/log/keystone/keystone.log
+RUN systemctl enable ntpd
 RUN systemctl enable openstack-keystone
 
 # Initialize the Keystone MySQL DB
