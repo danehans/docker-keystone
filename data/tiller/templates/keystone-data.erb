@@ -2,7 +2,7 @@
 #
 #
 export OS_SERVICE_TOKEN=<%= env_keystone_admin_token %>
-export OS_SERVICE_ENDPOINT=http://<%= env_keystone_host%>:<%= env_keystone_admin_port %>/v2.0
+export OS_SERVICE_ENDPOINT=http://<%= env_keystone_host%>:<%= env_keystone_admin_host_port %>/v2.0
 <% if env_config_keystone == "true" %>
 keystone user-create --name=admin --pass=<%= env_admin_user_password %> --email=admin@<%= env_domain %>
 keystone user-create --name=demo --pass=<%= env_demo_user_password %> --email=demo@<%= env_domain %>

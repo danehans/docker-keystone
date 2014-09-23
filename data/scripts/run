@@ -23,13 +23,19 @@ export HOSTNAME="${HOSTNAME:-$HOSTNAME}"
 # Configure the Keystone Hostname
 export DNS_SEARCH="${DNS_SEARCH:-example.com}"
 
-# Configure the Keystone Public API Port Number
-export KEYSTONE_PUBLIC_PORT="${KEYSTONE_PUBLIC_PORT:-5000}"
+# Configure the Keystone Public API Port Number used by the Docker Host
+export KEYSTONE_PUBLIC_HOST_PORT="${KEYSTONE_PUBLIC_HOST_PORT:-5000}"
 
-# Configure the Keystone Admin API Port NUmber
-export KEYSTONE_ADMIN_PORT="${KEYSTONE_ADMIN_PORT:-35357}"
+# Configure the Keystone Public API Port Number used by the Docker Container
+export KEYSTONE_PUBLIC_CONTAINER_PORT="${KEYSTONE_PUBLIC_CONTAINER_PORT:-5000}"
 
-docker run --privileged -d -h $HOSTNAME --dns-search $DNS_SEARCH -v /sys/fs/cgroup:/sys/fs/cgroup:ro -p $KEYSTONE_PUBLIC_PORT:$KEYSTONE_PUBLIC_PORT -p $KEYSTONE_ADMIN_PORT:$KEYSTONE_ADMIN_PORT --name="$CONTAINER_NAME" $IMAGE_NAME
+# Configure the Keystone Admin API Port Number used by the Docker Host
+export KEYSTONE_ADMIN_HOST_PORT="${KEYSTONE_ADMIN_HOST_PORT:-35357}"
+
+# Configure the Keystone Admin API Port Number used by the Docker Container
+export KEYSTONE_ADMIN_CONTAINER_PORT="${KEYSTONE_ADMIN_CONTAINER_PORT:-35357}"
+
+docker run --privileged -d -h $HOSTNAME --dns-search $DNS_SEARCH -v /sys/fs/cgroup:/sys/fs/cgroup:ro -p $KEYSTONE_PUBLIC_HOST_PORT:$KEYSTONE_PUBLIC_CONTAINER_PORT -p $KEYSTONE_ADMIN_HOST_PORT:$KEYSTONE_ADMIN_CONTAINER_PORT --name="$CONTAINER_NAME" $IMAGE_NAME
 
 # Get the PID of the Keystone Container
 CONTAINER_PID="$(docker inspect --format={{.State.Pid}} $CONTAINER_NAME)"
