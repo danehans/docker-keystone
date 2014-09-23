@@ -11,30 +11,30 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# The name of the Docker base image.
-# This should be a RHEL7 image with systemd.
-export BASE_IMAGE="${BASE_IMAGE:-danehans/rhel7-systemd}"
+# docker-keystone Github Repo Name
+export REPO_NAME="${REPO_NAME:-}"
 
 # docker-keystone Github Repo branch
 export REPO_BRANCH="${REPO_BRANCH:-}"
 
-# docker-keystone Github Repo Name
-export REPO_NAME="${REPO_NAME:-}"
+# The name of the Docker base image.
+# This should be a RHEL7 image with systemd.
+export BASE_IMAGE="${BASE_IMAGE:-rhel7-systemd}"
 
 # Configure the Docker Keystone Image Name
 export IMAGE_NAME="${IMAGE_NAME:-keystone}"
 
 # Configure the Hostname used within the Keystone container.
-export HOSTNAME="${HOSTNAME:-$HOSTNAME}"
+export KEYSTONE_HOSTNAME="${KEYSTONE_HOSTNAME:-$HOSTNAME}"
 
 # Configure the DB Host
-export DB_HOST="${DB_HOST:-127.0.0.1}"
+export DB_HOST="${DB_HOST:-}"
 
 # Configure the DB Password
 export DB_PASSWORD="${DB_PASSWORD:-changeme}"
 
 # Configure the RabbitMQ Host
-export RABBIT_HOST="${RABBIT_HOST:-127.0.0.1}"
+export RABBIT_HOST="${RABBIT_HOST:-}"
 
 # Configure the RabbitMQ User ID
 export RABBIT_USER="${RABBIT_USER:-guest}"
@@ -91,7 +91,7 @@ export CONFIG_TROVE="${CONFIG_TROVE:-true}"
 # used by Keystone in the endpoint-create command.
 export GLANCE_API_HOST="${GLANCE_API_HOST:-127.0.0.1}"
 export NOVA_API_HOST="${NOVA_API_HOST:-127.0.0.1}"
-export CINDER_AP_HOST="${CINDER_API_HOST:-127.0.0.1}"
+export CINDER_API_HOST="${CINDER_API_HOST:-127.0.0.1}"
 export SWIFT_PROXY_HOST="${SWIFT_PROXY_HOST:-127.0.0.1}"
 export NEUTRON_API_HOST="${NEUTRON_API_HOST:-127.0.0.1}"
 export HEAT_API_HOST="${HEAT_API_HOST:-127.0.0.1}"
@@ -183,11 +183,11 @@ RUN keystone-manage db_sync
 RUN keystone-manage pki_setup --keystone-user keystone --keystone-group keystone
 
 # Configure the Keystone service catalog
-#RUN ./usr/local/bin/keystone-data.sh
-#RUN ./usr/local/bin/keystone-endpoints.sh
+#RUN . /usr/local/bin/keystone-data.sh
+#RUN . /usr/local/bin/keystone-endpoints.sh
 
 # Expose Keystone TCP ports
-EXPOSE 5000 35357
+EXPOSE ${KEYSTONE_ADMIN_CONTAINER_PORT} ${KEYSTONE_PUBLIC_CONTAINER_PORT}
 
 # Start Init
 CMD ["/usr/sbin/init"]
