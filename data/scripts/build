@@ -185,11 +185,6 @@ RUN keystone-manage pki_setup --keystone-user keystone --keystone-group keystone
 # Expose Keystone TCP ports
 EXPOSE ${KEYSTONE_ADMIN_CONTAINER_PORT} ${KEYSTONE_PUBLIC_CONTAINER_PORT}
 
-if "${CONFIG_KEYSTONE}"; then
-RUN . /usr/local/bin/keystone-data.sh
-RUN . /usr/local/bin/keystone-endpoints.sh
-fi
-
 # Start Init
 CMD ["/usr/sbin/init"]
 EOF
