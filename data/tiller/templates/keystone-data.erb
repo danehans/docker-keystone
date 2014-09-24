@@ -1,51 +1,70 @@
 #!/bin/sh
 #
 #
+set -x
+set -e
+
+# Check for Root user
+if [ "$(id -u)" != "0" ]; then
+    echo "This script must be run as root or with sudo"
+    exit 1
+fi
+
 export OS_SERVICE_TOKEN=<%= env_keystone_admin_token %>
-export OS_SERVICE_ENDPOINT=http://<%= env_keystone_host%>:<%= env_keystone_admin_host_port %>/v2.0
-<% if env_config_keystone == "true" %>
-keystone user-create --name=admin --pass=<%= env_admin_user_password %> --email=admin@<%= env_domain %>
-keystone user-create --name=demo --pass=<%= env_demo_user_password %> --email=demo@<%= env_domain %>
-keystone role-create --name=admin
-keystone tenant-create --name=admin --description="Admin Tenant"
-keystone tenant-create --name=demo --description="Demo Tenant"
-keystone tenant-create --name=<%= env_service_tenant %> --description="Service Tenant"
-keystone user-role-add --user=admin --role=admin --tenant=admin
-keystone user-role-add --user=admin --role=_member_ --tenant=admin
-keystone user-role-add --user=demo --role=_member_ --tenant=demo
-<% end %>
-<% if env_config_glance == "true" %>
-keystone user-create --name=glance --pass=<%= env_service_password %> --email=glance@<%= env_domain %>
-keystone user-role-add --user=glance --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_nova == "true" %>
-keystone user-create --name=nova --pass=<%= env_service_password %> --email=nova@<%= env_domain %>
-keystone user-role-add --user=nova --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_neutron == "true" %>
-keystone user-create --name=neutron --pass=<%= env_service_password %> --email=neutron@<%= env_domain %>
-keystone user-role-add --user=neutron --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_cinder == "true" %>
-keystone user-create --name=cinder --pass=<%= env_service_password %> --email=cinder@<%= env_domain %>
-keystone user-role-add --user=cinder --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_swift == "true" %>
-keystone user-create --name=swift --pass=<%= env_service_password %> --email=swift@<%= env_domain %>
-keystone user-role-add --user=swift --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_heat == "true" %>
-keystone role-create --name=heat_stack_user
-keystone role-create --name=heat_stack_owner
-keystone user-create --name=heat --pass=<%= env_service_password %> --email=heat@<%= env_domain %>
-keystone user-role-add --user=heat --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_ceilometer == "true" %>
-keystone user-create --name=ceilometer --pass=<%= env_service_password %> --email=ceilometer@<%= env_domain %>
-keystone user-role-add --user=ceilometer --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
-<% if env_config_trove == "true" %>
-keystone user-create --name=trove --pass=<%= env_service_password %> --email=trove@<%= env_domain %>
-keystone user-role-add --user=trove --tenant=<%= env_service_tenant %> --role=admin
-<% end %>
+export OS_SERVICE_ENDPOINT=http:/<%= env_keystone_host %>/:<%= env_keystone_admin_host_port %>/v2.0
+
+if [ "${CONFIG_KEYSTONE}" == "true" ] ; then
+  keystone user-create --name=admin --pass=<%= env_admin_user_password %> --email=admin@<%= env_domain %>
+  keystone user-create --name=demo --pass=<%= env_demo_user_password %> --email=demo@<%= env_domain %>
+  keystone role-create --name=admin
+  keystone tenant-create --name=admin --description="Admin Tenant"
+  keystone tenant-create --name=demo --description="Demo Tenant"
+  keystone tenant-create --name=<%= env_service_tenant %> --description="Service Tenant"
+  keystone user-role-add --user=admin --role=admin --tenant=admin
+  keystone user-role-add --user=admin --role=_member_ --tenant=admin
+  keystone user-role-add --user=demo --role=_member_ --tenant=demo
+fi
+
+if [ "${CONFIG_GLANCE}" == "true" ] ; then
+  keystone user-create --name=glance --pass=<%= env_service_password %> --email=glance@<%= env_domain %>
+  keystone user-role-add --user=glance --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_NOVA}" == "true" ] ; then
+  keystone user-create --name=nova --pass=<%= env_service_password %> --email=nova@<%= env_domain %>
+  keystone user-role-add --user=nova --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_NOVA}" == "true" ] ; then
+  keystone user-create --name=neutron --pass=<%= env_service_password %> --email=neutron@<%= env_domain %>
+  keystone user-role-add --user=neutron --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_CINDER}" == "true" ] ; then
+  keystone user-create --name=cinder --pass=<%= env_service_password %> --email=cinder@<%= env_domain %>
+  keystone user-role-add --user=cinder --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_SWIFT}" == "true" ] ; then
+  keystone user-create --name=swift --pass=<%= env_service_password %> --email=swift@<%= env_domain %>
+  keystone user-role-add --user=swift --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_HEAT}" == "true" ] ; then
+  keystone role-create --name=heat_stack_user
+  keystone role-create --name=heat_stack_owner
+  keystone user-create --name=heat --pass=<%= env_service_password %> --email=heat@<%= env_domain %>
+  keystone user-role-add --user=heat --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_CEILOMETER}" == "true" ] ; then
+  keystone user-create --name=ceilometer --pass=<%= env_service_password %> --email=ceilometer@<%= env_domain %>
+  keystone user-role-add --user=ceilometer --tenant=<%= env_service_tenant %> --role=admin
+fi
+
+if [ "${CONFIG_TROVE}" == "true" ] ; then
+  keystone user-create --name=trove --pass=<%= env_service_password %> --email=trove@<%= env_domain %>
+  keystone user-role-add --user=trove --tenant=<%= env_service_tenant %> --role=admin
+fi
+
 unset OS_SERVICE_TOKEN OS_SERVICE_ENDPOINT

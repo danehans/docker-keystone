@@ -77,15 +77,15 @@ export DOMAIN="${DOMAIN:-localhost}"
 export REGION="${REGION:-RegionOne}"
 
 # Set the OpenStack services to configure within the Kesytone service catalog.
-export CONFIG_KEYSTONE="${CONFIG_KEYSTONE:-true}"
-export CONFIG_GLANCE="${CONFIG_GLANCE:-true}"
-export CONFIG_NOVA="${CONFIG_NOVA:-true}"
-export CONFIG_CINDER="${CONFIG_CINDER:-true}"
-export CONFIG_SWIFT="${CONFIG_SWIFT:-true}"
-export CONFIG_NEUTRON="${CONFIG_NEUTRON:-true}"
-export CONFIG_HEAT="${CONFIG_HEAT:-true}"
-export CONFIG_CEILOMETER="${CONFIG_CEILOMETER:-true}"
-export CONFIG_TROVE="${CONFIG_TROVE:-true}"
+export CONFIG_KEYSTONE="${CONFIG_KEYSTONE:-false}"
+export CONFIG_GLANCE="${CONFIG_GLANCE:-false}"
+export CONFIG_NOVA="${CONFIG_NOVA:-false}"
+export CONFIG_CINDER="${CONFIG_CINDER:-false}"
+export CONFIG_SWIFT="${CONFIG_SWIFT:-false}"
+export CONFIG_NEUTRON="${CONFIG_NEUTRON:-false}"
+export CONFIG_HEAT="${CONFIG_HEAT:-false}"
+export CONFIG_CEILOMETER="${CONFIG_CEILOMETER:-false}"
+export CONFIG_TROVE="${CONFIG_TROVE:-false}"
 
 # Set the IP address/hostname of enabled OpenStack services
 # used by Keystone in the endpoint-create command.
@@ -182,12 +182,13 @@ RUN keystone-manage db_sync
 # Create the signing keys and certificates and restrict access to the generated data
 RUN keystone-manage pki_setup --keystone-user keystone --keystone-group keystone
 
-# Configure the Keystone service catalog
-#RUN . /usr/local/bin/keystone-data.sh
-#RUN . /usr/local/bin/keystone-endpoints.sh
-
 # Expose Keystone TCP ports
 EXPOSE ${KEYSTONE_ADMIN_CONTAINER_PORT} ${KEYSTONE_PUBLIC_CONTAINER_PORT}
+
+if "${CONFIG_KEYSTONE}"; then
+RUN . /usr/local/bin/keystone-data.sh
+RUN . /usr/local/bin/keystone-endpoints.sh
+fi
 
 # Start Init
 CMD ["/usr/sbin/init"]
