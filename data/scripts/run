@@ -20,7 +20,7 @@ export CONTAINER_NAME="${CONTAINER_NAME:-keystone}"
 # Configure the Keystone Hostname
 export KEYSTONE_HOSTNAME="${KEYSTONE_HOSTNAME:-$HOSTNAME}"
 
-# Configure the Keystone Hostname
+# Configure the Keystone container DNS search order
 export DNS_SEARCH="${DNS_SEARCH:-example.com}"
 
 # Configure the Keystone Public API Port Number used by the Docker Host
