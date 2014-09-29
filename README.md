@@ -75,6 +75,10 @@ Optional. admin_token flag used in keystone.conf to bootstrap Keystone. Defaults
 ```
 export KEYSTONE_ADMIN_TOKEN=changeme
 ```
+Optional. TCP Port used by the Docker host to listen on for the Keystone Admin API. Defaults to 35357.
+```
+export KEYSTONE_ADMIN_HOST_PORT=35357
+```
 Optional. TCP Port used by the Docker host to listen on for the Keystone Public API. Note: The Docker Registry listens on port 5000. Defaults to 5000
 ```
 export KEYSTONE_PUBLIC_HOST_PORT=5001
